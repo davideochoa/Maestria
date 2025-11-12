@@ -3,16 +3,10 @@ A1.2 Práctica - Sistema Difuso Mamdani
 Evaluación de Satisfacción del Cliente
 Autor: [Tu Nombre]
 Fecha: 2025-11-12
-
-Descripción:
-Este sistema difuso evalúa la satisfacción del cliente basándose en dos variables:
-1. Calidad del servicio (0-10)
-2. Tiempo de espera (0-60 minutos)
 """
 
 import matplotlib
-
-matplotlib.use('Agg')  # Modo no interactivo para evitar errores de visualización
+matplotlib.use('TkAgg')  # 👈 Usa backend interactivo para mostrar ventanas
 import matplotlib.pyplot as plt
 import numpy as np
 import skfuzzy as fuzz
@@ -25,91 +19,72 @@ from skfuzzy import control as ctrl
 # Variable de entrada 1: Calidad del Servicio (escala 0-10)
 calidad = ctrl.Antecedent(np.arange(0, 11, 1), 'calidad')
 
-# Variable de entrada 2: Tiempo de Espera en minutos (0-60)
+# Variable de entrada 2: Tiempo de Espera (0-60 min)
 tiempo_espera = ctrl.Antecedent(np.arange(0, 61, 1), 'tiempo_espera')
 
-# Variable de salida: Satisfacción del Cliente (escala 0-100)
+# Variable de salida: Satisfacción del Cliente (0-100)
 satisfaccion = ctrl.Consequent(np.arange(0, 101, 1), 'satisfaccion')
 
 # =============================================================================
-# PASO 2: DEFINICIÓN DE FUNCIONES DE MEMBRESÍA
+# PASO 2: FUNCIONES DE MEMBRESÍA
 # =============================================================================
 
-# Funciones de membresía para CALIDAD DEL SERVICIO
-# Utilizamos funciones triangulares (trimf) para modelar los conjuntos difusos
+# Calidad del servicio
 calidad['mala'] = fuzz.trimf(calidad.universe, [0, 0, 5])
 calidad['regular'] = fuzz.trimf(calidad.universe, [3, 5, 7])
 calidad['buena'] = fuzz.trimf(calidad.universe, [5, 10, 10])
 
-# Funciones de membresía para TIEMPO DE ESPERA
+# Tiempo de espera
 tiempo_espera['corto'] = fuzz.trimf(tiempo_espera.universe, [0, 0, 20])
 tiempo_espera['medio'] = fuzz.trimf(tiempo_espera.universe, [10, 30, 50])
 tiempo_espera['largo'] = fuzz.trimf(tiempo_espera.universe, [40, 60, 60])
 
-# Funciones de membresía para SATISFACCIÓN (salida)
+# Satisfacción
 satisfaccion['baja'] = fuzz.trimf(satisfaccion.universe, [0, 0, 50])
 satisfaccion['media'] = fuzz.trimf(satisfaccion.universe, [25, 50, 75])
 satisfaccion['alta'] = fuzz.trimf(satisfaccion.universe, [50, 100, 100])
 
 # =============================================================================
-# PASO 3: DEFINICIÓN DE REGLAS DIFUSAS (BASE DE CONOCIMIENTO)
+# PASO 3: REGLAS DIFUSAS
 # =============================================================================
 
-"""
-Reglas de inferencia basadas en lógica experta:
-- Si la calidad es buena y el tiempo es corto → satisfacción alta
-- Si la calidad es mala o el tiempo es largo → satisfacción baja
-- Casos intermedios → satisfacción media
-"""
-
-# Regla 1: Calidad buena + Tiempo corto = Satisfacción alta
 regla1 = ctrl.Rule(calidad['buena'] & tiempo_espera['corto'], satisfaccion['alta'])
-
-# Regla 2: Calidad buena + Tiempo medio = Satisfacción media
 regla2 = ctrl.Rule(calidad['buena'] & tiempo_espera['medio'], satisfaccion['media'])
-
-# Regla 3: Calidad buena + Tiempo largo = Satisfacción media
 regla3 = ctrl.Rule(calidad['buena'] & tiempo_espera['largo'], satisfaccion['media'])
-
-# Regla 4: Calidad regular + Tiempo corto = Satisfacción media
 regla4 = ctrl.Rule(calidad['regular'] & tiempo_espera['corto'], satisfaccion['media'])
-
-# Regla 5: Calidad regular + Tiempo medio = Satisfacción media
 regla5 = ctrl.Rule(calidad['regular'] & tiempo_espera['medio'], satisfaccion['media'])
-
-# Regla 6: Calidad regular + Tiempo largo = Satisfacción baja
 regla6 = ctrl.Rule(calidad['regular'] & tiempo_espera['largo'], satisfaccion['baja'])
-
-# Regla 7: Calidad mala + Tiempo corto = Satisfacción baja
 regla7 = ctrl.Rule(calidad['mala'] & tiempo_espera['corto'], satisfaccion['baja'])
-
-# Regla 8: Calidad mala + Tiempo medio = Satisfacción baja
 regla8 = ctrl.Rule(calidad['mala'] & tiempo_espera['medio'], satisfaccion['baja'])
-
-# Regla 9: Calidad mala + Tiempo largo = Satisfacción baja
 regla9 = ctrl.Rule(calidad['mala'] & tiempo_espera['largo'], satisfaccion['baja'])
 
 # =============================================================================
-# PASO 4: CREACIÓN DEL SISTEMA DE CONTROL DIFUSO
+# PASO 4: SISTEMA DE CONTROL
 # =============================================================================
 
-# Crear el sistema de control con todas las reglas
-sistema_control = ctrl.ControlSystem([regla1, regla2, regla3, regla4, regla5,
-                                      regla6, regla7, regla8, regla9])
-
-# Crear la simulación del sistema
+sistema_control = ctrl.ControlSystem([
+    regla1, regla2, regla3, regla4, regla5,
+    regla6, regla7, regla8, regla9
+])
 sistema = ctrl.ControlSystemSimulation(sistema_control)
 
 # =============================================================================
-# PASO 5: EVALUACIÓN DEL SISTEMA CON CASOS DE PRUEBA
+# PASO 5: VISUALIZACIÓN DE FUNCIONES DE MEMBRESÍA (.view)
 # =============================================================================
 
-print("=" * 70)
-print("SISTEMA DIFUSO MAMDANI - EVALUACIÓN DE SATISFACCIÓN DEL CLIENTE")
-print("=" * 70)
+print("Mostrando funciones de membresía...\n")
 
-# Casos de prueba
-casos_prueba = [
+calidad.view()
+tiempo_espera.view()
+satisfaccion.view()
+
+plt.show()  # 👈 Aquí se mostrarán las tres gráficas
+
+# =============================================================================
+# PASO 6: EVALUACIÓN DE CASOS DE PRUEBA
+# =============================================================================
+
+casos = [
     {"calidad": 9, "tiempo": 10, "descripcion": "Excelente servicio, espera corta"},
     {"calidad": 8, "tiempo": 35, "descripcion": "Buen servicio, espera moderada"},
     {"calidad": 5, "tiempo": 45, "descripcion": "Servicio regular, espera larga"},
@@ -117,90 +92,45 @@ casos_prueba = [
     {"calidad": 7, "tiempo": 15, "descripcion": "Buen servicio, espera corta"},
 ]
 
-resultados = []
+print("=" * 70)
+print("RESULTADOS DE SATISFACCIÓN DEL CLIENTE")
+print("=" * 70)
 
-for i, caso in enumerate(casos_prueba, 1):
-    # Asignar valores de entrada al sistema
+for caso in casos:
     sistema.input['calidad'] = caso['calidad']
     sistema.input['tiempo_espera'] = caso['tiempo']
-
-    # Realizar el cómputo (fuzzificación, inferencia y defuzzificación)
     sistema.compute()
-
-    # Obtener el resultado
     resultado = sistema.output['satisfaccion']
-    resultados.append(resultado)
 
-    # Mostrar resultados
-    print(f"\nCaso {i}: {caso['descripcion']}")
-    print(f"  • Calidad del servicio: {caso['calidad']}/10")
-    print(f"  • Tiempo de espera: {caso['tiempo']} minutos")
-    print(f"  • Satisfacción calculada: {resultado:.2f}/100")
-
-    # Clasificación cualitativa
     if resultado >= 70:
-        clasificacion = "ALTA ✓"
+        nivel = "ALTA ✓"
     elif resultado >= 40:
-        clasificacion = "MEDIA ~"
+        nivel = "MEDIA ~"
     else:
-        clasificacion = "BAJA ✗"
-    print(f"  • Nivel de satisfacción: {clasificacion}")
+        nivel = "BAJA ✗"
+
+    print(f"{caso['descripcion']}: {resultado:.2f}/100 ({nivel})")
 
 # =============================================================================
-# PASO 6: VISUALIZACIÓN DE FUNCIONES DE MEMBRESÍA (SOLUCIÓN 1)
+# PASO 7: VISUALIZACIÓN DEL RESULTADO DIFUSO (.view sim)
 # =============================================================================
 
-fig, axes = plt.subplots(3, 1, figsize=(10, 10))
-
-# --- CALIDAD DEL SERVICIO ---
-axes[0].plot(calidad.universe, calidad['mala'].mf, 'r', linewidth=2, label='Mala')
-axes[0].plot(calidad.universe, calidad['regular'].mf, 'y', linewidth=2, label='Regular')
-axes[0].plot(calidad.universe, calidad['buena'].mf, 'g', linewidth=2, label='Buena')
-axes[0].set_title('Funciones de Membresía - Calidad del Servicio', fontsize=12, fontweight='bold')
-axes[0].set_xlabel('Calidad del Servicio')
-axes[0].set_ylabel('Grado de Membresía')
-axes[0].legend(loc='upper right')
-axes[0].grid(True, alpha=0.3)
-
-# --- TIEMPO DE ESPERA ---
-axes[1].plot(tiempo_espera.universe, tiempo_espera['corto'].mf, 'g', linewidth=2, label='Corto')
-axes[1].plot(tiempo_espera.universe, tiempo_espera['medio'].mf, 'y', linewidth=2, label='Medio')
-axes[1].plot(tiempo_espera.universe, tiempo_espera['largo'].mf, 'r', linewidth=2, label='Largo')
-axes[1].set_title('Funciones de Membresía - Tiempo de Espera', fontsize=12, fontweight='bold')
-axes[1].set_xlabel('Tiempo de Espera (minutos)')
-axes[1].set_ylabel('Grado de Membresía')
-axes[1].legend(loc='upper right')
-axes[1].grid(True, alpha=0.3)
-
-# --- SATISFACCIÓN ---
-axes[2].plot(satisfaccion.universe, satisfaccion['baja'].mf, 'r', linewidth=2, label='Baja')
-axes[2].plot(satisfaccion.universe, satisfaccion['media'].mf, 'y', linewidth=2, label='Media')
-axes[2].plot(satisfaccion.universe, satisfaccion['alta'].mf, 'g', linewidth=2, label='Alta')
-axes[2].set_title('Funciones de Membresía - Satisfacción del Cliente', fontsize=12, fontweight='bold')
-axes[2].set_xlabel('Satisfacción del Cliente')
-axes[2].set_ylabel('Grado de Membresía')
-axes[2].legend(loc='upper right')
-axes[2].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.savefig('funciones_membresia.png', dpi=300, bbox_inches='tight')
-plt.close()
-
-print("\n" + "=" * 70)
-print("✓ Funciones de membresía graficadas correctamente")
+print("\nMostrando resultado difuso del último caso...\n")
+satisfaccion.view(sim=sistema)  # 👈 Muestra el área activada
+plt.show()
 
 # =============================================================================
-# PASO 7: VISUALIZACIÓN DE SUPERFICIE DE CONTROL
+# PASO 8: SUPERFICIE DE CONTROL 3D
 # =============================================================================
 
-# Crear malla de valores para la superficie
+print("Generando superficie de control 3D...\n")
+
 calidad_range = np.arange(0, 11, 0.5)
 tiempo_range = np.arange(0, 61, 2)
 x, y = np.meshgrid(calidad_range, tiempo_range)
 z = np.zeros_like(x)
 
-# Calcular satisfacción para cada combinación
-print("Generando superficie de control 3D...")
+# Cálculo
 for i in range(x.shape[0]):
     for j in range(x.shape[1]):
         sistema.input['calidad'] = x[i, j]
@@ -208,28 +138,16 @@ for i in range(x.shape[0]):
         sistema.compute()
         z[i, j] = sistema.output['satisfaccion']
 
-# Crear gráfica 3D
-fig = plt.figure(figsize=(12, 8))
+# Gráfica
+fig = plt.figure(figsize=(10, 7))
 ax = fig.add_subplot(111, projection='3d')
+surf = ax.plot_surface(x, y, z, cmap='viridis', linewidth=0.2, antialiased=True)
 
-surf = ax.plot_surface(x, y, z, cmap='viridis', alpha=0.8,
-                       edgecolor='none', antialiased=True)
+ax.set_xlabel('Calidad del Servicio')
+ax.set_ylabel('Tiempo de Espera (min)')
+ax.set_zlabel('Satisfacción del Cliente')
+ax.set_title('Superficie de Control - Sistema Difuso Mamdani', fontsize=12, fontweight='bold')
 
-ax.set_xlabel('Calidad del Servicio', fontsize=11, fontweight='bold')
-ax.set_ylabel('Tiempo de Espera (min)', fontsize=11, fontweight='bold')
-ax.set_zlabel('Satisfacción del Cliente', fontsize=11, fontweight='bold')
-ax.set_title('Superficie de Control - Sistema Difuso Mamdani',
-             fontsize=13, fontweight='bold', pad=20)
+plt.show()
 
-# Añadir barra de color
-fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5, label='Satisfacción')
-
-plt.savefig('superficie_control.png', dpi=300, bbox_inches='tight')
-plt.close()
-
-print("✓ Superficie de control generada correctamente")
-print("=" * 70)
-print("\nArchivos generados:")
-print("  • funciones_membresia.png")
-print("  • superficie_control.png")
-print("=" * 70)
+print("✅ Listo: todas las gráficas se han mostrado correctamente.")
