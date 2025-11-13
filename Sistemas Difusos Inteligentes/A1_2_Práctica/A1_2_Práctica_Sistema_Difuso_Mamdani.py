@@ -1,7 +1,6 @@
 """
 A1.2 Práctica - Sistema Difuso Mamdani
 Evaluación de Satisfacción del Cliente
-Autor: [Tu Nombre]
 Fecha: 2025-11-12
 """
 
@@ -78,7 +77,7 @@ calidad.view()
 tiempo_espera.view()
 satisfaccion.view()
 
-plt.show()  # 👈 Aquí se mostrarán las tres gráficas
+plt.show()
 
 # =============================================================================
 # PASO 6: EVALUACIÓN DE CASOS DE PRUEBA
@@ -116,7 +115,7 @@ for caso in casos:
 # =============================================================================
 
 print("\nMostrando resultado difuso del último caso...\n")
-satisfaccion.view(sim=sistema)  # 👈 Muestra el área activada
+satisfaccion.view(sim=sistema)
 plt.show()
 
 # =============================================================================
